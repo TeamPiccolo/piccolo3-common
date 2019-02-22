@@ -15,18 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with piccolo3-common.  If not, see <http://www.gnu.org/licenses/>.
 
-from setuptools import setup, find_packages
+from pkg_resources import get_distribution, DistributionNotFound
+try:
+    __version__ = get_distribution('piccolo3-common').version
+except DistributionNotFound:
+    # package is not installed
+    pass
 
-setup(
-    name = "piccolo3-common",
-    namespace_packages = ['piccolo3'],
-    packages = find_packages(),
-    use_scm_version=True,
-    setup_requires=['setuptools_scm'],
-    install_requires = ['bitarray','numpy'],
-    # metadata for upload to PyPI
-    author = "Magnus Hagdorn, Alasdair MacArthur, Iain Robinson",
-    description = "Part of the piccolo3 system. This package provides common modules",
-    license = "GPL",
-    url = "https://bitbucket.org/uoepiccolo/piccolo3-common",
-)
+from .PiccoloSpectra import *
