@@ -22,4 +22,5 @@ except DistributionNotFound:
     # package is not installed
     pass
 
+from .piccoloLogging import *
 from .PiccoloSpectra import *

@@ -1,3 +1,7 @@
+2019-03-05 Magnus Hagdorn
+ * piccolo3/common/__init__.py: loadd new module
+ * piccolo3/common/piccoloLogging.py: move logging module from server
+
 2019-02-22 Magnus Hagdorn
  * setup.py: require numpy
  * data/example.pico: add an example spectra file
