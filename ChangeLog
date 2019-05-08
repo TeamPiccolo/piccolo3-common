@@ -1,4 +1,8 @@
 2019-05-08 Magnus Hagdorn
+ * piccolo3/common/PiccoloSpectra.py: add new method to get wavelengths as a
+   numpy array
+
+2019-05-08 Magnus Hagdorn
  * piccolo3/common/PiccoloSpectra.py: add method to apply non-linearity
    correction
 

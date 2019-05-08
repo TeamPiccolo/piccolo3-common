@@ -408,15 +408,37 @@ class PiccoloSpectrum(MutableMapping):
         """the number of pixels"""
         return len(self.pixels)
 
-    def computeWavelength(self,i):
+    def computeWavelength(self,i,piccolo=True):
         """compute the ith wavelength
         :param i: the wavelength index"""
-        C = self['WavelengthCalibrationCoefficients']
+        if piccolo:
+            cs = 'WavelengthCalibrationCoefficientsPiccolo'
+        else:
+            cs = 'WavelengthCalibrationCoefficients'
+        C = self[cs]
         w = 0
         for j in range(len(C)):
             w = w+ C[j]*i**j
         return w
 
+    def getWavelengths(self,piccolo=True):
+        if piccolo and 'WavelengthCalibrationCoefficientsPiccolo' in self.keys() and self['WavelengthCalibrationCoefficientsPiccolo'] is not None:
+            wtype = 'piccolo'
+            p = 'WavelengthCalibrationCoefficientsPiccolo'
+        elif 'WavelengthCalibrationCoefficients' in self.keys():
+            wtype = 'native'
+            p = 'WavelengthCalibrationCoefficients'
+        else:
+            wtype = 'none'
+
+        w = numpy.arange(self.getNumberOfPixels(),dtype=float)
+        if wtype != 'none':
+            cpoly = numpy.poly1d(numpy.array(self[p])[::-1])
+            w = cpoly(w)
+
+        return wtype,w
+            
+    
     @property
     def waveLengths(self):
         """the list of wavelengths"""
