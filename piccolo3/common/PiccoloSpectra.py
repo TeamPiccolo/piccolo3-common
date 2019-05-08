@@ -286,6 +286,9 @@ class PiccoloSpectrum(MutableMapping):
         self._meta['Dark'] = 'Missing metadata'
         self._meta['Type'] = 'Missing metadata'
         self._pixels = None
+
+        self._corrected = None
+        
         self._complete = False
         self.setDatetime()
 
@@ -390,7 +393,17 @@ class PiccoloSpectrum(MutableMapping):
     def pixels(self,values):
         tmp = numpy.minimum(values,200000)
         self._pixels = numpy.array(tmp,dtype=numpy.int)
+        self._corrected = None
 
+    @property
+    def corrected_pixels(self):
+        #TODO: apply dark pixel
+        if self._corrected is None:
+            dark = 0.
+            cpoly = numpy.poly1d(numpy.array(self['NonlinearityCorrectionCoefficients'])[::-1])
+            self._corrected = dark + (self.pixels-dark)/cpoly(self.pixels-dark)
+        return self._corrected
+    
     def getNumberOfPixels(self):
         """the number of pixels"""
         return len(self.pixels)
