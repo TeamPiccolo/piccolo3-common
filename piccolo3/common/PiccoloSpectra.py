@@ -408,19 +408,6 @@ class PiccoloSpectrum(MutableMapping):
         """the number of pixels"""
         return len(self.pixels)
 
-    def computeWavelength(self,i,piccolo=True):
-        """compute the ith wavelength
-        :param i: the wavelength index"""
-        if piccolo:
-            cs = 'WavelengthCalibrationCoefficientsPiccolo'
-        else:
-            cs = 'WavelengthCalibrationCoefficients'
-        C = self[cs]
-        w = 0
-        for j in range(len(C)):
-            w = w+ C[j]*i**j
-        return w
-
     def getWavelengths(self,piccolo=True):
         if piccolo and 'WavelengthCalibrationCoefficientsPiccolo' in self.keys() and self['WavelengthCalibrationCoefficientsPiccolo'] is not None:
             wtype = 'piccolo'
@@ -442,13 +429,8 @@ class PiccoloSpectrum(MutableMapping):
     @property
     def waveLengths(self):
         """the list of wavelengths"""
-        w = []
-        if 'WavelengthCalibrationCoefficients' in self.keys():
-            for i in range(self.getNumberOfPixels()):
-                w.append(self.computeWavelength(i))
-        else:
-            w = list(range(self.getNumberOfPixels()))
-        return w
+        wtype,wavelengths = self.getWavelengths(piccolo=False)
+        return list(wavelengths)
 
     def as_dict(self,pixelType='array'):
         """represent spectrum as a dictionary
