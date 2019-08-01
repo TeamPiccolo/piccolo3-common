@@ -15,13 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with piccolo3-common.  If not, see <http://www.gnu.org/licenses/>.
 
-from pkg_resources import get_distribution, DistributionNotFound
-try:
-    __version__ = get_distribution('piccolo3-common').version
-except DistributionNotFound:
-    # package is not installed
-    pass
+__all__ = ['PiccoloSchedulerStatus']
 
-from .piccoloLogging import *
-from .PiccoloSpectra import *
-from .PiccoloScheduler import *
+import enum
+
+class PiccoloSchedulerStatus(enum.Enum):
+    active = 1
+    done = 2
+    suspended = 3
+    deleted = 4
+    
