@@ -150,6 +150,14 @@ class PiccoloSpectraList(MutableSequence):
                 return True
         return False
 
+    @property
+    def isSaturated(self):
+        saturated = False
+        for s in self._spectra:
+            if s.isSaturated:
+                saturated = True
+        return saturated
+
     def haveSpectrum(self,spectrum):
         """check if a particular spectrum type is available
         :param spectrum: must be either Light or Dark"""
@@ -391,8 +399,7 @@ class PiccoloSpectrum(MutableMapping):
         return self._pixels
     @pixels.setter
     def pixels(self,values):
-        tmp = numpy.minimum(values,200000)
-        self._pixels = numpy.array(tmp,dtype=numpy.int)
+        self._pixels = numpy.array(values,dtype=numpy.int)
         self._corrected = None
 
     @property
@@ -403,6 +410,12 @@ class PiccoloSpectrum(MutableMapping):
             cpoly = numpy.poly1d(numpy.array(self['NonlinearityCorrectionCoefficients'])[::-1])
             self._corrected = dark + (self.pixels-dark)/cpoly(self.pixels-dark)
         return self._corrected
+
+    @property
+    def isSaturated(self):
+        """whether spectrum is saturated"""
+
+        return numpy.any(self.pixels[slice(*self['OpticalPixelRange'])]>=0.999*self['SaturationLevel'])
     
     def getNumberOfPixels(self):
         """the number of pixels"""
@@ -425,6 +438,20 @@ class PiccoloSpectrum(MutableMapping):
 
         return wtype,w
             
+    def getData(self,include_dark=False,piccolo=True):
+        """return a tuple of wavelengths and pixels
+
+        include dark pixels if include_dark set to True
+        """
+        if include_dark:
+            s = slice(None,None)
+        else:
+            s = slice(*self['OpticalPixelRange'])
+
+        _,wavelengths = self.getWavelengths(piccolo=piccolo)
+
+        return wavelengths[s],self.pixels[s]
+
     
     @property
     def waveLengths(self):

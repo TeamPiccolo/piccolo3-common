@@ -1,3 +1,8 @@
+2019-11-16 Magnus Hagdorn
+ * piccolo3/common/PiccoloSpectra.py: add properties to check if spectra
+   are saturated; do not clip pixel values; add method to get a tuple of
+   wavelength and pixel by default excluding dark pixels
+
 2019-08-01 Magnus Hagdorn
  * piccolo3/common/__init__.py: load new module
  * piccolo3/common/PiccoloScheduler.py: add enum for recording status of
