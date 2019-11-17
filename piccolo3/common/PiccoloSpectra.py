@@ -27,6 +27,7 @@ from datetime import datetime
 import json
 import os.path
 import numpy
+import logging
 
 protectedKeys = ['Direction','Dark','Datetime']
 
@@ -55,11 +56,16 @@ class PiccoloSpectraList(MutableSequence):
         self._batch = batch
         self._seqNr = seqNr
         self._chunkID = None
-
+        self._log = logging.getLogger("piccolo.SpectraList")
+        
         # initialise from json if available
         if data is not None:
             self._initFromData(data)
 
+    @property
+    def log(self):
+        return self._log
+            
     def __getitem__(self,i):
         return self._spectra[i]
     def __setitem__(self,i,y):
@@ -298,6 +304,8 @@ class PiccoloSpectrum(MutableMapping):
         self._corrected = None
         
         self._complete = False
+
+        self._log = logging.getLogger("piccolo.Spectrum")
         self.setDatetime()
 
         # initialise from json if available
@@ -312,6 +320,10 @@ class PiccoloSpectrum(MutableMapping):
             else:
                 self.pixels = data['Pixels']
 
+    @property
+    def log(self):
+        return self._log
+    
     @property
     def complete(self):
         """whether all chunks have been set"""
@@ -433,8 +445,13 @@ class PiccoloSpectrum(MutableMapping):
 
         w = numpy.arange(self.getNumberOfPixels(),dtype=float)
         if wtype != 'none':
-            cpoly = numpy.poly1d(numpy.array(self[p])[::-1])
-            w = cpoly(w)
+            try:
+                cpoly = numpy.poly1d(numpy.array(self[p])[::-1])
+                w = cpoly(w)
+            except Exception:
+                self.log.error('could not compute wavelengths {}'.format(wtype))
+                self.log.error('wavelength coefficients {}: {}'.format(p,self[p]))
+                raise RuntimeError
 
         return wtype,w
             

@@ -1,3 +1,7 @@
+2019-11-17 Magnus Hagdorn
+ * piccolo3/common/PiccoloSpectra.py: add logging and complain if wavelength
+   coefficients cannot be read
+
 2019-11-16 Magnus Hagdorn
  * piccolo3/common/PiccoloSpectra.py: add properties to check if spectra
    are saturated; do not clip pixel values; add method to get a tuple of
