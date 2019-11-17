@@ -26,7 +26,7 @@ from collections import MutableMapping, MutableSequence
 from datetime import datetime
 import json
 import os.path
-import numpy
+import numpy, numpy.ma
 import logging
 
 protectedKeys = ['Direction','Dark','Datetime']
@@ -423,6 +423,13 @@ class PiccoloSpectrum(MutableMapping):
             self._corrected = dark + (self.pixels-dark)/cpoly(self.pixels-dark)
         return self._corrected
 
+    @property
+    def dark_pixels(self):
+        d = numpy.concatenate((self.pixels[:self['OpticalPixelRange'][0]],
+                               self.pixels[self['OpticalPixelRange'][1]:]))
+        m = d==self['SaturationLevel']
+        return numpy.ma.array(d,mask=m)
+    
     @property
     def isSaturated(self):
         """whether spectrum is saturated"""

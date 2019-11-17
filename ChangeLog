@@ -1,4 +1,7 @@
 2019-11-17 Magnus Hagdorn
+ * piccolo3/common/PiccoloSpectra.py: add method to extract dark pixels
+
+2019-11-17 Magnus Hagdorn
  * piccolo3/common/PiccoloSpectra.py: add logging and complain if wavelength
    coefficients cannot be read
 
