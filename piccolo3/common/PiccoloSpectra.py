@@ -24,6 +24,7 @@ __all__ = ['PiccoloSpectraList','PiccoloSpectrum']
 
 from collections import MutableMapping, MutableSequence
 from datetime import datetime
+import pytz
 import json
 import os.path
 import numpy, numpy.ma
@@ -393,13 +394,16 @@ class PiccoloSpectrum(MutableMapping):
         :param dt: date and time of recording, use now if set to None
         :type dt: datetime"""
         if dt is  None:
-            ts = datetime.now()
+            ts = datetime.now(tz=pytz.utc)
         elif isinstance(dt,datetime):
             ts = dt
         else:
-            ts = datetime.strptime(dt,'%Y-%m-%dT%H:%M:%S')
+            try:
+                ts = datetime.strptime(dt,'%Y-%m-%dT%H:%M:%S%z')
+            except:
+                ts = datetime.strptime(dt,'%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
 
-        self._meta['Datetime'] = '{}Z'.format(ts.isoformat())
+        self._meta['Datetime'] = ts.strftime('%Y-%m-%dT%H:%M:%S.%f%z')
 
     @property
     def pixels(self):
