@@ -441,11 +441,24 @@ class PiccoloSpectrum(MutableMapping):
                     start = self['DarkPixels'][i]+1
                     end = self['DarkPixels'][i+1]
                     break
-                self['OpticalPixelRange'] = [start,end]
+            self['OpticalPixelRange'] = [start,end]
         else:
             self.log.debug('neither OpticalPixelRange nor DarkPixels set - using entire range')
             self['OpticalPixelRange'] = [0,self.getNumberOfPixels()]
         return self['OpticalPixelRange']
+
+    @property
+    def darkPixels(self):
+        if 'DarkPixels' in self:
+            pass
+        elif 'OpticalPixelRange' in self:
+            self['DarkPixels'] = numpy.concatenate(
+                (numpy.arange(0,self.opticalPixelRange[0]),
+                 numpy.arange(self.opticalPixelRange[1],self.getNumberOfPixels())
+                ))
+        else:
+            self['DarkPixels'] = []
+        return self['DarkPixels']
     
     @property
     def dark_pixels(self):

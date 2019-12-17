@@ -1,4 +1,8 @@
 2019-12-17 Magnus Hagdorn
+ * piccolo3/common/PiccoloSpectra.py: fix and also infer list of dark pixels
+   if not present
+
+2019-12-17 Magnus Hagdorn
  * piccolo3/common/PiccoloSpectra.py: convert dark pixels to optical pixel
    range; use dark pixel in non-lin correction
 
