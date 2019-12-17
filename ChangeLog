@@ -1,3 +1,7 @@
+2019-12-17 Magnus Hagdorn
+ * piccolo3/common/PiccoloSpectra.py: convert dark pixels to optical pixel
+   range; use dark pixel in non-lin correction
+
 2019-11-20 Magnus Hagdorn
  * piccolo3/common/PiccoloSpectra.py: handle time zone correctly when creating
    spectrum

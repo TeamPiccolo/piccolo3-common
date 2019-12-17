@@ -420,17 +420,37 @@ class PiccoloSpectrum(MutableMapping):
 
     @property
     def corrected_pixels(self):
-        #TODO: apply dark pixel
         if self._corrected is None:
-            dark = 0.
+            dark = self.dark_pixels.mean()
+            self.log.debug('apply non-linearity correction coefficients, dark={}'.format(dark))
             cpoly = numpy.poly1d(numpy.array(self['NonlinearityCorrectionCoefficients'])[::-1])
             self._corrected = dark + (self.pixels-dark)/cpoly(self.pixels-dark)
         return self._corrected
 
     @property
+    def opticalPixelRange(self):
+        if 'OpticalPixelRange' in self:
+            pass
+        elif 'DarkPixels' in self:
+            self.log.debug('extracting optical pixel range from dark pixels')
+            # find optical pixel range, assume dark pixels are clustered at either end of the sensor
+            start = 0
+            end = self.getNumberOfPixels()
+            for i in range(len(self['DarkPixels'])-1):
+                if self['DarkPixels'][i+1]-self['DarkPixels'][i]>1:
+                    start = self['DarkPixels'][i]+1
+                    end = self['DarkPixels'][i+1]
+                    break
+                self['OpticalPixelRange'] = [start,end]
+        else:
+            self.log.debug('neither OpticalPixelRange nor DarkPixels set - using entire range')
+            self['OpticalPixelRange'] = [0,self.getNumberOfPixels()]
+        return self['OpticalPixelRange']
+    
+    @property
     def dark_pixels(self):
-        d = numpy.concatenate((self.pixels[:self['OpticalPixelRange'][0]],
-                               self.pixels[self['OpticalPixelRange'][1]:]))
+        d = numpy.concatenate((self.pixels[:self.opticalPixelRange[0]],
+                               self.pixels[self.opticalPixelRange[1]:]))
         m = d==self['SaturationLevel']
         return numpy.ma.array(d,mask=m)
     
@@ -438,7 +458,7 @@ class PiccoloSpectrum(MutableMapping):
     def isSaturated(self):
         """whether spectrum is saturated"""
 
-        return numpy.any(self.pixels[slice(*self['OpticalPixelRange'])]>=0.999*self['SaturationLevel'])
+        return numpy.any(self.pixels[slice(*self.opticalPixelRange)]>=0.999*self['SaturationLevel'])
     
     def getNumberOfPixels(self):
         """the number of pixels"""
@@ -453,7 +473,10 @@ class PiccoloSpectrum(MutableMapping):
             p = 'WavelengthCalibrationCoefficients'
         else:
             wtype = 'none'
-
+            p = 'none'
+        
+        self.log.debug('computing wavelengths {} using {}'.format(wtype,p))
+            
         w = numpy.arange(self.getNumberOfPixels(),dtype=float)
         if wtype != 'none':
             try:
@@ -474,7 +497,7 @@ class PiccoloSpectrum(MutableMapping):
         if include_dark:
             s = slice(None,None)
         else:
-            s = slice(*self['OpticalPixelRange'])
+            s = slice(*self.opticalPixelRange)
 
         _,wavelengths = self.getWavelengths(piccolo=piccolo)
 
