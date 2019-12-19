@@ -1,3 +1,6 @@
+2019-12-19 Magnus Hagdorn
+ * piccolo3/common/PiccoloSpectra.py: fix access to meta data
+
 2019-12-17 Magnus Hagdorn
  * piccolo3/common/PiccoloSpectra.py: fix and also infer list of dark pixels
    if not present

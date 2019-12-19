@@ -429,36 +429,36 @@ class PiccoloSpectrum(MutableMapping):
 
     @property
     def opticalPixelRange(self):
-        if 'OpticalPixelRange' in self:
+        if 'OpticalPixelRange' in self._meta:
             pass
-        elif 'DarkPixels' in self:
+        elif 'DarkPixels' in self._meta:
             self.log.debug('extracting optical pixel range from dark pixels')
             # find optical pixel range, assume dark pixels are clustered at either end of the sensor
             start = 0
             end = self.getNumberOfPixels()
             for i in range(len(self['DarkPixels'])-1):
-                if self['DarkPixels'][i+1]-self['DarkPixels'][i]>1:
+                if self._meta['DarkPixels'][i+1]-self._meta['DarkPixels'][i]>1:
                     start = self['DarkPixels'][i]+1
                     end = self['DarkPixels'][i+1]
                     break
-            self['OpticalPixelRange'] = [start,end]
+            self._meta['OpticalPixelRange'] = [start,end]
         else:
             self.log.debug('neither OpticalPixelRange nor DarkPixels set - using entire range')
-            self['OpticalPixelRange'] = [0,self.getNumberOfPixels()]
-        return self['OpticalPixelRange']
+            self._meta['OpticalPixelRange'] = [0,self.getNumberOfPixels()]
+        return self._meta['OpticalPixelRange']
 
     @property
     def darkPixels(self):
-        if 'DarkPixels' in self:
+        if 'DarkPixels' in self._meta:
             pass
-        elif 'OpticalPixelRange' in self:
-            self['DarkPixels'] = numpy.concatenate(
+        elif 'OpticalPixelRange' in self._meta:
+            self._meta['DarkPixels'] = numpy.concatenate(
                 (numpy.arange(0,self.opticalPixelRange[0]),
                  numpy.arange(self.opticalPixelRange[1],self.getNumberOfPixels())
                 ))
         else:
-            self['DarkPixels'] = []
-        return self['DarkPixels']
+            self._meta['DarkPixels'] = []
+        return self._meta['DarkPixels']
     
     @property
     def dark_pixels(self):
