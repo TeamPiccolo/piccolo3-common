@@ -24,4 +24,4 @@ except DistributionNotFound:
 
 from .piccoloLogging import *
 from .PiccoloSpectra import *
-from .PiccoloScheduler import *
+from .PiccoloStatus import *
