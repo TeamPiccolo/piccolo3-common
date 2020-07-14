@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with piccolo3-common.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ['PiccoloSchedulerStatus']
+__all__ = ['PiccoloSchedulerStatus','PiccoloSpectrometerStatus']
 
 import enum
 
@@ -25,3 +25,10 @@ class PiccoloSchedulerStatus(enum.Enum):
     suspended = 3
     deleted = 4
     
+class PiccoloSpectrometerStatus(enum.IntEnum):
+    NO_WORKER = enum.auto()
+    DISCONNECTED = enum.auto()
+    CONNECTING = enum.auto()
+    IDLE = enum.auto()
+    RECORDING = enum.auto()
+    AUTOINTEGRATING = enum.auto()
