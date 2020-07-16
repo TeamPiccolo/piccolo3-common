@@ -27,8 +27,9 @@ class PiccoloSchedulerStatus(enum.Enum):
     
 class PiccoloSpectrometerStatus(enum.IntEnum):
     NO_WORKER = enum.auto()
-    DISCONNECTED = enum.auto()
+    DROPPED =  enum.auto()
     CONNECTING = enum.auto()
+    DISCONNECTED = enum.auto()
     IDLE = enum.auto()
     RECORDING = enum.auto()
     AUTOINTEGRATING = enum.auto()
