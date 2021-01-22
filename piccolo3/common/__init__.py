@@ -22,6 +22,6 @@ except DistributionNotFound:
     # package is not installed
     pass
 
-from .piccoloLogging import *
-from .PiccoloSpectra import *
-from .PiccoloStatus import *
+from .piccoloLogging import *  # noqa: F401 F403
+from .PiccoloSpectra import *  # noqa: F401 F403
+from .PiccoloStatus import *   # noqa: F401 F403

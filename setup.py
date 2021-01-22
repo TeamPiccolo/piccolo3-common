@@ -18,15 +18,17 @@
 from setuptools import setup, find_packages
 
 setup(
-    name = "piccolo3-common",
-    namespace_packages = ['piccolo3'],
-    packages = find_packages(),
+    name="piccolo3-common",
+    namespace_packages=['piccolo3'],
+    packages=find_packages(),
     use_scm_version=True,
     setup_requires=['setuptools_scm'],
-    install_requires = ['bitarray','numpy'],
+    install_requires=['bitarray', 'numpy'],
     # metadata for upload to PyPI
-    author = "Magnus Hagdorn, Alasdair MacArthur, Iain Robinson",
-    description = "Part of the piccolo3 system. This package provides common modules",
-    license = "GPL",
-    url = "https://bitbucket.org/uoepiccolo/piccolo3-common",
+    author="Magnus Hagdorn, Alasdair MacArthur, Iain Robinson",
+    description="""Part of the piccolo3 system.
+
+This package provides common modules""",
+    license="GPL",
+    url="https://github.com/TeamPiccolo/piccolo3-common",
 )

@@ -19,7 +19,8 @@ __all__ = ["piccoloLogging"]
 
 import logging
 
-def piccoloLogging(logfile = None,debug=False):
+
+def piccoloLogging(logfile=None, debug=False):
     """setup logging
 
     :param logfile: name of logfile - log to stdout if None
@@ -33,12 +34,13 @@ def piccoloLogging(logfile = None,debug=False):
     else:
         log.setLevel(logging.INFO)
 
-    if logfile == None:
+    if logfile is None:
         handler = logging.StreamHandler()
     else:
         handler = logging.FileHandler(logfile)
 
-    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(name)s: %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s %(levelname)s: %(name)s: %(message)s')
     handler.setFormatter(formatter)
     log.addHandler(handler)
 

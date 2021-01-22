@@ -18,6 +18,6 @@
 try:
     __import__('pkg_resources').declare_namespace(__name__)
 except ImportError as e:
-    e.args += ("Cannot start Piccolo Server due to an import error. The reason may be that Python Setuptools is not installed.", )
+    e.args += ("""Cannot start Piccolo Server due to an import error.
+The reason may be that Python Setuptools is not installed.""", )
     raise(e)
-

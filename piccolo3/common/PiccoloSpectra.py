@@ -20,17 +20,19 @@
 .. moduleauthor:: Iain Robinson <iain.robinson@ed.ac.uk>
 """
 
-__all__ = ['PiccoloSpectraList','PiccoloSpectrum']
+__all__ = ['PiccoloSpectraList', 'PiccoloSpectrum']
 
 from collections import MutableMapping, MutableSequence
 from datetime import datetime
 import pytz
 import json
 import os.path
-import numpy, numpy.ma
+import numpy
+import numpy.ma
 import logging
 
-protectedKeys = ['Direction','Dark','Datetime']
+protectedKeys = ['Direction', 'Dark', 'Datetime']
+
 
 class PiccoloSpectraList(MutableSequence):
     """a collection of spectra
@@ -41,7 +43,7 @@ class PiccoloSpectraList(MutableSequence):
 
     _NCHUNKS = 300
 
-    def __init__(self,run=None,batch=0,seqNr=0,data=None):
+    def __init__(self, run=None, batch=0, seqNr=0, data=None):
         """
            :param run:   the name of the run
            :param batch: the batch number of the spectra collection;
@@ -58,7 +60,7 @@ class PiccoloSpectraList(MutableSequence):
         self._seqNr = seqNr
         self._chunkID = None
         self._log = logging.getLogger("piccolo.SpectraList")
-        
+
         # initialise from json if available
         if data is not None:
             self._initFromData(data)
@@ -66,27 +68,32 @@ class PiccoloSpectraList(MutableSequence):
     @property
     def log(self):
         return self._log
-            
-    def __getitem__(self,i):
+
+    def __getitem__(self, i):
         return self._spectra[i]
-    def __setitem__(self,i,y):
-        assert isinstance(y,PiccoloSpectrum)
+
+    def __setitem__(self, i, y):
+        assert isinstance(y, PiccoloSpectrum)
         self._spectra[i] = y
-    def __delitem__(self,i):
+
+    def __delitem__(self, i):
         raise RuntimeError('cannot delete spectra')
+
     def __len__(self):
         return len(self._spectra)
-    def insert(self,i,y):
+
+    def insert(self, i, y):
         """insert a new Spectrum
-        :param i: position in the list after which the new spectrum should be inserted
+        :param i: position in the list after which the
+                  new spectrum should be inserted
         :param y: the spectrum object to be inserted
         :type y: PiccoloSpectrum"""
-        assert isinstance(y,PiccoloSpectrum)
-        self._spectra.insert(i,y)
+        assert isinstance(y, PiccoloSpectrum)
+        self._spectra.insert(i, y)
 
-    def _initFromData(self,data):
+    def _initFromData(self, data):
         self._spectra = []
-        if isinstance(data,str):
+        if isinstance(data, str):
             data = json.loads(data)
         for s in data['Spectra']:
             self._seqNr = s['Metadata']['SequenceNumber']
@@ -116,12 +123,12 @@ class PiccoloSpectraList(MutableSequence):
     def run(self):
         """the run name, used in generating output filename"""
         return self._run
-    
+
     @property
     def batch(self):
         """the batch number, used in generating output filename"""
         return self._batch
-    
+
     @property
     def seqNr(self):
         """the sequency number, used in generating output filename"""
@@ -130,9 +137,9 @@ class PiccoloSpectraList(MutableSequence):
     @property
     def outName(self):
         """the output name, generated from the batch and sequence number"""
-        n = 'b{0:06d}_s{1:06d}.pico'.format(self.batch,self.seqNr)
+        n = 'b{0:06d}_s{1:06d}.pico'.format(self.batch, self.seqNr)
         if self.run is not None:
-            n = os.path.join(self.run,n)
+            n = os.path.join(self.run, n)
         return n
 
     @property
@@ -165,18 +172,18 @@ class PiccoloSpectraList(MutableSequence):
                 saturated = True
         return saturated
 
-    def haveSpectrum(self,spectrum):
+    def haveSpectrum(self, spectrum):
         """check if a particular spectrum type is available
         :param spectrum: must be either Light or Dark"""
 
-        if spectrum=='Dark':
+        if spectrum == 'Dark':
             return self.haveDark
-        elif spectrum=='Light':
+        elif spectrum == 'Light':
             return self.haveLight
         else:
             raise KeyError('spectrum must be one of Dark or Light')
 
-    def getSpectra(self,direction,spectrum):
+    def getSpectra(self, direction, spectrum):
         """extract a particular spectrum by type
         :param direction: the direction
         :param spectrum: must be either Light or Dark"""
@@ -189,15 +196,16 @@ class PiccoloSpectraList(MutableSequence):
         spectra = []
         for s in self._spectra:
             if s['Direction'] == direction and s['Dark'] == dark:
-                 spectra.append(s)
+                spectra.append(s)
         return spectra
 
-    def serialize(self,pretty=True,pixelType='list',spectrum=None):
+    def serialize(self, pretty=True, pixelType='list', spectrum=None):
         """serialize to JSON
 
         :param pretty: when set True (default) produce indented JSON
         :param pixelType: set the pixel type
-        :param spectrum: select spectrum type (Dark or Light) or both when None"""
+        :param spectrum: select spectrum type (Dark or Light)
+                         or both when None"""
         if spectrum == 'Dark':
             dark = True
         elif spectrum == 'Light':
@@ -213,70 +221,72 @@ class PiccoloSpectraList(MutableSequence):
             s['SequenceNumber'] = self._seqNr
             if dark is None or s['Dark'] == dark:
                 spectra.append(s.as_dict(pixelType))
-        root = {'Spectra':spectra}
+        root = {'Spectra': spectra}
 
         if pretty:
             return json.dumps(root, sort_keys=True, indent=1)
         else:
             return json.dumps(root)
 
-    def write(self,prefix='',clobber=True, split=True):
+    def write(self, prefix='', clobber=True, split=True):
         """write spectra to file
 
         :param prefix: output prefix
         :param clobber: boolean whether files should be overwritten or not
-        :param split: when set to True split files into light and dark spectra"""
+        :param split: when set to True split files into light
+                      and dark spectra"""
 
-        outName = os.path.join(prefix,self.outName)
+        outName = os.path.join(prefix, self.outName)
         outDir = os.path.dirname(outName)
 
         if not os.path.exists(outDir):
             os.makedirs(outDir)
 
         if split:
-            for s in ['Dark','Light']:
+            for s in ['Dark', 'Light']:
                 if self.haveSpectrum(s):
                     o = "{}_{}".format(outName, s.lower())
-                    # The above producues a filename with the extension (.pico) in the middle of the filename:
+                    # The above producues a filename with the extension
+                    # (.pico) in the middle of the filename:
                     #      b000000_s000000.pico_dark
                     # The two lines below fix it.
                     o = o.replace('.pico', '')
                     o = o + '.pico'
                     if not clobber and os.path.exists(o):
                         raise RuntimeError('{} already exists'.format(o))
-                    with open(o,'w') as outf:
+                    with open(o, 'w') as outf:
                         outf.write(self.serialize(spectrum=s))
         else:
             if not clobber and os.path.exists(outName):
                 raise RuntimeError('{} already exists'.format(outName))
-            with open(outName,'w') as outf:
+            with open(outName, 'w') as outf:
                 outf.write(self.serialize())
 
-    def getChunk(self,idx):
+    def getChunk(self, idx):
         """get a particular chunk
         :param idx: the chunk index
         :return: JSON string containing the data"""
-        assert isinstance(idx,int)
-        assert idx>=0 and idx < self.NCHUNKS
+        assert isinstance(idx, int)
+        assert idx >= 0 and idx < self.NCHUNKS
 
         if idx == 0:
             # first chunk is special, copy all the meta data
-            data = self.serialize(pretty=False,pixelType='size')
+            data = self.serialize(pretty=False, pixelType='size')
         else:
             data = []
             for s in self._spectra:
-                data.append(s.getChunk(idx-1,self.NCHUNKS-1).tolist())
+                data.append(s.getChunk(idx - 1, self.NCHUNKS - 1).tolist())
             data = json.dumps(data)
 
         return data
 
-    def setChunk(self,idx,data):
+    def setChunk(self, idx, data):
         """add a particular chunk
         :param idx: the chunk index
         :param data: the chunk to be added
         :type data: JSON string"""
-        assert isinstance(idx,int)
-        assert idx>=0 and idx < self.NCHUNKS
+        assert isinstance(idx, int)
+        assert idx >= 0 and idx < self.NCHUNKS
 
         if idx == 0:
             self._initFromData(data)
@@ -285,7 +295,7 @@ class PiccoloSpectraList(MutableSequence):
             data = json.loads(data)
             assert len(data) == len(self._spectra)
             for i in range(len(data)):
-                self._spectra[i].setChunk(idx-1,self.NCHUNKS-1,data[i])
+                self._spectra[i].setChunk(idx - 1, self.NCHUNKS - 1, data[i])
         self._chunkID = idx
 
 
@@ -294,7 +304,7 @@ class PiccoloSpectrum(MutableMapping):
 
     The PiccoloSpectrum object behaves like a python dictionary. It can be
     initialised from a JSON string. It also supports chunking."""
-    def __init__(self,data=None):
+    def __init__(self, data=None):
         """:param data: JSON string used to initialise object"""
         self._meta = {}
         self._meta['Direction'] = 'Missing metadata'
@@ -303,7 +313,6 @@ class PiccoloSpectrum(MutableMapping):
         self._pixels = None
 
         self._corrected = None
-        
         self._complete = False
 
         self._log = logging.getLogger("piccolo.Spectrum")
@@ -311,34 +320,34 @@ class PiccoloSpectrum(MutableMapping):
 
         # initialise from json if available
         if data is not None:
-            if isinstance(data,str):
+            if isinstance(data, str):
                 data = json.loads(data)
             for key in data['Metadata']:
                 self._meta[key] = data['Metadata'][key]
-            if isinstance(data['Pixels'],int):
+            if isinstance(data['Pixels'], int):
                 # create a list of correct size
-                self._pixels = -numpy.ones(data['Pixels'],dtype=numpy.int)
+                self._pixels = -numpy.ones(data['Pixels'], dtype=numpy.int)
             else:
                 self.pixels = data['Pixels']
 
     @property
     def log(self):
         return self._log
-    
+
     @property
     def complete(self):
         """whether all chunks have been set"""
         return self._complete
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         return self._meta[key]
 
-    def __setitem__(self,key,value):
+    def __setitem__(self, key, value):
         if key in protectedKeys:
             raise KeyError('field {0} is a protected key'.format(key))
         self._meta[key] = value
 
-    def __delitem__(self,key):
+    def __delitem__(self, key):
         if key in protectedKeys:
             raise KeyError('field {0} is a protected key'.format(key))
         del self._meta[key]
@@ -349,17 +358,17 @@ class PiccoloSpectrum(MutableMapping):
     def __len__(self):
         return len(self._meta)
 
-    def setDirection(self,direction):
+    def setDirection(self, direction):
         self._meta['Direction'] = direction
-    
-    def setUpwelling(self,value=None):
+
+    def setUpwelling(self, value=None):
         """set the direction to upwelling
         :param value: set direction to downwelling when False
         :type value: bool"""
         if value is None:
             self._meta['Direction'] = 'Upwelling'
         else:
-            assert isinstance(value,bool)
+            assert isinstance(value, bool)
             if value:
                 self.setUpwelling()
             else:
@@ -369,7 +378,7 @@ class PiccoloSpectrum(MutableMapping):
         """set direction to downwelling"""
         self._meta['Direction'] = 'Downwelling'
 
-    def setDark(self,value=None):
+    def setDark(self, value=None):
         """set spectrum to dark
         :param value: set to light when False
         :type value: bool"""
@@ -377,7 +386,7 @@ class PiccoloSpectrum(MutableMapping):
             self._meta['Dark'] = True
             self._meta['Type'] = 'dark'
         else:
-            assert isinstance(value,bool)
+            assert isinstance(value, bool)
             self._meta['Dark'] = value
             if value:
                 self._meta['Type'] = 'dark'
@@ -389,19 +398,20 @@ class PiccoloSpectrum(MutableMapping):
         self._meta['Dark'] = False
         self._meta['Type'] = 'light'
 
-    def setDatetime(self,dt=None):
+    def setDatetime(self, dt=None):
         """set date and time when spectrum is recorded
         :param dt: date and time of recording, use now if set to None
         :type dt: datetime"""
-        if dt is  None:
+        if dt is None:
             ts = datetime.now(tz=pytz.utc)
-        elif isinstance(dt,datetime):
+        elif isinstance(dt, datetime):
             ts = dt
         else:
             try:
-                ts = datetime.strptime(dt,'%Y-%m-%dT%H:%M:%S%z')
-            except:
-                ts = datetime.strptime(dt,'%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
+                ts = datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S%z')
+            except ValueError:
+                ts = datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S').replace(
+                    tzinfo=pytz.utc)
 
         self._meta['Datetime'] = ts.strftime('%Y-%m-%dT%H:%M:%S.%f%z')
 
@@ -413,18 +423,22 @@ class PiccoloSpectrum(MutableMapping):
         if len(self._pixels) == 0:
             raise RuntimeError('There are no pixels in the spectrum.')
         return self._pixels
+
     @pixels.setter
-    def pixels(self,values):
-        self._pixels = numpy.array(values,dtype=numpy.int)
+    def pixels(self, values):
+        self._pixels = numpy.array(values, dtype=numpy.int)
         self._corrected = None
 
     @property
     def corrected_pixels(self):
         if self._corrected is None:
             dark = self.dark_pixels.mean()
-            self.log.debug('apply non-linearity correction coefficients, dark={}'.format(dark))
-            cpoly = numpy.poly1d(numpy.array(self['NonlinearityCorrectionCoefficients'])[::-1])
-            self._corrected = dark + (self.pixels-dark)/cpoly(self.pixels-dark)
+            self.log.debug(
+                f'apply non-linearity correction coefficients, dark={dark}')
+            cpoly = numpy.poly1d(
+                numpy.array(self['NonlinearityCorrectionCoefficients'])[::-1])
+            self._corrected = dark + \
+                (self.pixels - dark) / cpoly(self.pixels - dark)
         return self._corrected
 
     @property
@@ -433,18 +447,22 @@ class PiccoloSpectrum(MutableMapping):
             pass
         elif 'DarkPixels' in self._meta:
             self.log.debug('extracting optical pixel range from dark pixels')
-            # find optical pixel range, assume dark pixels are clustered at either end of the sensor
+            # find optical pixel range, assume dark pixels are
+            # clustered at either end of the sensor
             start = 0
             end = self.getNumberOfPixels()
-            for i in range(len(self['DarkPixels'])-1):
-                if self._meta['DarkPixels'][i+1]-self._meta['DarkPixels'][i]>1:
-                    start = self['DarkPixels'][i]+1
-                    end = self['DarkPixels'][i+1]
+            for i in range(len(self['DarkPixels']) - 1):
+                if self._meta['DarkPixels'][i + 1] - \
+                   self._meta['DarkPixels'][i] > 1:
+                    start = self['DarkPixels'][i] + 1
+                    end = self['DarkPixels'][i + 1]
                     break
-            self._meta['OpticalPixelRange'] = [start,end]
+            self._meta['OpticalPixelRange'] = [start, end]
         else:
-            self.log.debug('neither OpticalPixelRange nor DarkPixels set - using entire range')
-            self._meta['OpticalPixelRange'] = [0,self.getNumberOfPixels()]
+            self.log.debug(
+                'neither OpticalPixelRange nor DarkPixels set'
+                ' - using entire range')
+            self._meta['OpticalPixelRange'] = [0, self.getNumberOfPixels()]
         return self._meta['OpticalPixelRange']
 
     @property
@@ -453,32 +471,34 @@ class PiccoloSpectrum(MutableMapping):
             pass
         elif 'OpticalPixelRange' in self._meta:
             self._meta['DarkPixels'] = numpy.concatenate(
-                (numpy.arange(0,self.opticalPixelRange[0]),
-                 numpy.arange(self.opticalPixelRange[1],self.getNumberOfPixels())
-                ))
+                (numpy.arange(0, self.opticalPixelRange[0]),
+                 numpy.arange(self.opticalPixelRange[1],
+                              self.getNumberOfPixels())))
         else:
             self._meta['DarkPixels'] = []
         return self._meta['DarkPixels']
-    
+
     @property
     def dark_pixels(self):
         d = numpy.concatenate((self.pixels[:self.opticalPixelRange[0]],
                                self.pixels[self.opticalPixelRange[1]:]))
-        m = d==self['SaturationLevel']
-        return numpy.ma.array(d,mask=m)
-    
+        m = (d == self['SaturationLevel'])
+        return numpy.ma.array(d, mask=m)
+
     @property
     def isSaturated(self):
         """whether spectrum is saturated"""
+        return numpy.any(
+            self.pixels[slice(*self.opticalPixelRange)] >= 0.999 * self['SaturationLevel'])  # noqa: E501
 
-        return numpy.any(self.pixels[slice(*self.opticalPixelRange)]>=0.999*self['SaturationLevel'])
-    
     def getNumberOfPixels(self):
         """the number of pixels"""
         return len(self.pixels)
 
-    def getWavelengths(self,piccolo=True):
-        if piccolo and 'WavelengthCalibrationCoefficientsPiccolo' in self.keys() and self['WavelengthCalibrationCoefficientsPiccolo'] is not None:
+    def getWavelengths(self, piccolo=True):
+        if piccolo and \
+           'WavelengthCalibrationCoefficientsPiccolo' in self.keys() and \
+           self['WavelengthCalibrationCoefficientsPiccolo'] is not None:
             wtype = 'piccolo'
             p = 'WavelengthCalibrationCoefficientsPiccolo'
         elif 'WavelengthCalibrationCoefficients' in self.keys():
@@ -487,51 +507,52 @@ class PiccoloSpectrum(MutableMapping):
         else:
             wtype = 'none'
             p = 'none'
-        
-        self.log.debug('computing wavelengths {} using {}'.format(wtype,p))
-            
-        w = numpy.arange(self.getNumberOfPixels(),dtype=float)
+
+        self.log.debug(f'computing wavelengths {wtype} using {p}')
+
+        w = numpy.arange(self.getNumberOfPixels(), dtype=float)
         if wtype != 'none':
             try:
                 cpoly = numpy.poly1d(numpy.array(self[p])[::-1])
                 w = cpoly(w)
             except Exception:
-                self.log.error('could not compute wavelengths {}'.format(wtype))
-                self.log.error('wavelength coefficients {}: {}'.format(p,self[p]))
+                self.log.error(f'could not compute wavelengths {wtype}')
+                self.log.error(f'wavelength coefficients {p}: {self[p]}')
                 raise RuntimeError
 
-        return wtype,w
-            
-    def getData(self,include_dark=False,piccolo=True):
+        return wtype, w
+
+    def getData(self, include_dark=False, piccolo=True):
         """return a tuple of wavelengths and pixels
 
         include dark pixels if include_dark set to True
         """
         if include_dark:
-            s = slice(None,None)
+            s = slice(None, None)
         else:
             s = slice(*self.opticalPixelRange)
 
-        _,wavelengths = self.getWavelengths(piccolo=piccolo)
+        _, wavelengths = self.getWavelengths(piccolo=piccolo)
 
-        return wavelengths[s],self.pixels[s]
+        return wavelengths[s], self.pixels[s]
 
-    
     @property
     def waveLengths(self):
         """the list of wavelengths"""
-        wtype,wavelengths = self.getWavelengths(piccolo=False)
+        wtype, wavelengths = self.getWavelengths(piccolo=False)
         return list(wavelengths)
 
-    def as_dict(self,pixelType='array'):
+    def as_dict(self, pixelType='array'):
         """represent spectrum as a dictionary
         :param pixelType: how the pxiels are represented
 
         .. note::
           the pixelType should be one of
            * 'array' (default): the pixel values are stored as a numpy.array
-           * 'list': the pxiel values are stored as a list; useful for serialisation
-           * 'size': store the size of pixel array, useful for initialising chunked array"""
+           * 'list': the pxiel values are stored as a list;
+                     useful for serialisation
+           * 'size': store the size of pixel array,
+                     useful for initialising chunked array"""
         spectrum = {}
         spectrum['Metadata'] = dict(self.items())
         if pixelType == 'size':
@@ -541,10 +562,10 @@ class PiccoloSpectrum(MutableMapping):
         elif pixelType == 'array':
             spectrum['Pixels'] = self.pixels
         else:
-            raise RuntimeError('unknown pixel type %s'%pixelType)
+            raise RuntimeError(f'unknown pixel type {pixelType}')
         return spectrum
 
-    def serialize(self,pretty=True):
+    def serialize(self, pretty=True):
         """serialize to JSON string
         :param pretty: pretty print JSON"""
         spectrum = self.as_dict(pixelType='list')
@@ -553,31 +574,32 @@ class PiccoloSpectrum(MutableMapping):
         else:
             return json.dumps(spectrum)
 
-    def getChunk(self,idx,nChunks):
+    def getChunk(self, idx, nChunks):
         """get a chunk
         :param idx: the chunk index
         :param nChunks: the total number of chunks"""
-        return self.pixels[range(idx,self.getNumberOfPixels(),nChunks)]
+        return self.pixels[range(idx, self.getNumberOfPixels(), nChunks)]
 
-    def setChunk(self,idx,nChunks,data):
+    def setChunk(self, idx, nChunks, data):
         """set a chunk
         :param idx: the chunk index
         :param nChunks: the total number of chunks
         :param data: the chunk data
         :type data: JSON string"""
-        if idx!=nChunks-1:
+        if idx != nChunks - 1:
             self._complete = False
         else:
             self._complete = True
-        rng = range(idx,self.getNumberOfPixels(),nChunks)
+        rng = range(idx, self.getNumberOfPixels(), nChunks)
         assert len(rng) == len(data)
         self._pixels[rng] = data
+
 
 if __name__ == '__main__':
     import sys
 
-    if len(sys.argv)>1:
-        data = open(sys.argv[1],'r').read()
+    if len(sys.argv) > 1:
+        data = open(sys.argv[1], 'r').read()
 
         spectra = PiccoloSpectraList(data=data)
-        print (spectra.directions)
+        print(spectra.directions)
