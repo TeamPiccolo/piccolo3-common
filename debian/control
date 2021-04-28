@@ -1,15 +1,21 @@
 Source: piccolo3-common
-Section: unknown
+Section: python
 Priority: optional
 Maintainer: Magnus Hagdorn <magnus.hagdorn@ed.ac.uk>
-Build-Depends: debhelper-compat (= 12)
+Build-Depends: debhelper-compat (= 12),
+               dh-sequence-python3,
+	       dh-python,
+               python3-all,
+               python3-numpy,
+	       python3-bitarray,
+	       python3-setuptools-scm
 Standards-Version: 4.4.1
-Homepage: <insert the upstream URL, if relevant>
-#Vcs-Browser: https://salsa.debian.org/debian/piccolo3-common
-#Vcs-Git: https://salsa.debian.org/debian/piccolo3-common.git
+Homepage: https://blogs.ed.ac.uk/teampiccolo/
+Vcs-Browser: https://github.com/TeamPiccolo/piccolo3-common
+Vcs-Git: https://github.com/TeamPiccolo/piccolo3-common.git
 
 Package: piccolo3-common
 Architecture: all
-Depends: ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: ${misc:Depends}, ${python3:Depends}, python3-numpy,  python3-bitarray
+Description: common code for piccolo3 spectral system
+ Common python classes for the piccolo3 spectral system.
