@@ -432,13 +432,19 @@ class PiccoloSpectrum(MutableMapping):
     @property
     def corrected_pixels(self):
         if self._corrected is None:
-            dark = self.dark_pixels.mean()
-            self.log.debug(
-                f'apply non-linearity correction coefficients, dark={dark}')
-            cpoly = numpy.poly1d(
-                numpy.array(self['NonlinearityCorrectionCoefficients'])[::-1])
-            self._corrected = dark + \
-                (self.pixels - dark) / cpoly(self.pixels - dark)
+            if len(self.dark_pixels) > 0:
+                dark = self.dark_pixels.mean()
+                self.log.debug(
+                    f'non-linearity correction coefficients, dark={dark}')
+                cpoly = numpy.poly1d(
+                    numpy.array(
+                        self['NonlinearityCorrectionCoefficients'])[::-1])
+                self._corrected = dark + \
+                    (self.pixels - dark) / cpoly(self.pixels - dark)
+            else:
+                self.log.debug(
+                    'no non-linearity correction as there are no dark pixels')
+                self._corrected = self.pixels
         return self._corrected
 
     @property
