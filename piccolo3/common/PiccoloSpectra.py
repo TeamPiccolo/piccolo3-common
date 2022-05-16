@@ -519,7 +519,7 @@ class PiccoloSpectrum(MutableMapping):
         w = numpy.arange(self.getNumberOfPixels(), dtype=float)
         if wtype != 'none':
             try:
-                cpoly = numpy.poly1d(numpy.array(self[p])[::-1])
+                cpoly = numpy.poly1d(numpy.array(self[p], dtype=float)[::-1])
                 w = cpoly(w)
             except Exception:
                 self.log.error(f'could not compute wavelengths {wtype}')
