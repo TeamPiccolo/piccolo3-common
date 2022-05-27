@@ -22,7 +22,7 @@
 
 __all__ = ['PiccoloSpectraList', 'PiccoloSpectrum']
 
-from collections import MutableMapping, MutableSequence
+from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
 import pytz
 import json
